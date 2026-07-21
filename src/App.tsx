@@ -14,6 +14,7 @@ import type { Equipment, Course } from './types';
 import type { AdminUser } from './types/admin';
 import { MOCK_EQUIPMENT, MOCK_COURSES } from './data/mockData';
 import { CheckCircle2 } from 'lucide-react';
+import { incrementEquipmentStat } from './lib/statsService';
 
 export function App() {
   const [currentPage, setCurrentPage] = useState('home');
@@ -120,7 +121,16 @@ export function App() {
     setAdminUsers(prev => prev.filter(u => u.id !== id));
   };
 
-  const handleDummyAddToCart = (equipment: Equipment) => {
+  const handleDummyAddToCart = (equipment: Equipment, type: 'rental' | 'purchase' = 'rental') => {
+    incrementEquipmentStat(equipment.id, 'cotizaciones');
+    if (type === 'purchase') {
+      incrementEquipmentStat(equipment.id, 'ventas');
+    } else {
+      // Increment sales 25% of the time for demo/interaction purposes
+      if (Math.random() > 0.75) {
+        incrementEquipmentStat(equipment.id, 'ventas');
+      }
+    }
     setToastMessage(`Consulta registrada para el equipo ${equipment.model}. Contactando...`);
     setTimeout(() => setToastMessage(null), 4000);
   };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   Zap, 
   GraduationCap, 
@@ -9,11 +9,18 @@ import {
   ShieldCheck, 
   LogOut, 
   X,
-  Server
+  Server,
+  Mail,
+  Phone,
+  FileText,
+  Search,
+  Eye,
+  TrendingUp
 } from 'lucide-react';
 import type { Equipment, Course } from '../types';
 import type { AdminUser } from '../types/admin';
 import { IdurLogo } from './IdurLogo';
+import { loadEquipmentStats, loadCourseStats, loadParticipants } from '../lib/statsService';
 
 interface AdminDashboardProps {
   currentUserEmail: string;
@@ -44,6 +51,65 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 }) => {
   const [activeTab, setActiveTab] = useState<'equipos' | 'cursos' | 'usuarios' | 'db'>('equipos');
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  // Stats & Registration States
+  const [eqStats, setEqStats] = useState(() => loadEquipmentStats());
+  const [cStats, setCStats] = useState(() => loadCourseStats());
+  const [participantsList, setParticipantsList] = useState(() => loadParticipants());
+  const [participantSearch, setParticipantSearch] = useState('');
+
+  // Re-load stats when tab changes to keep dashboard updated
+  React.useEffect(() => {
+    setEqStats(loadEquipmentStats());
+    setCStats(loadCourseStats());
+    setParticipantsList(loadParticipants());
+  }, [activeTab]);
+
+  // Compute equipment metrics highlights
+  const metrics = useMemo(() => {
+    let maxInq = -1, maxQuote = -1, maxSales = -1;
+    let maxInqId = '', maxQuoteId = '', maxSalesId = '';
+
+    Object.keys(eqStats).forEach(id => {
+      const s = eqStats[id];
+      if (s.consultas > maxInq) {
+        maxInq = s.consultas;
+        maxInqId = id;
+      }
+      if (s.cotizaciones > maxQuote) {
+        maxQuote = s.cotizaciones;
+        maxQuoteId = id;
+      }
+      if (s.ventas > maxSales) {
+        maxSales = s.ventas;
+        maxSalesId = id;
+      }
+    });
+
+    return {
+      mostInquired: equipmentList.find(e => e.id === maxInqId),
+      mostInquiredVal: maxInq > 0 ? maxInq : 0,
+      mostQuoted: equipmentList.find(e => e.id === maxQuoteId),
+      mostQuotedVal: maxQuote > 0 ? maxQuote : 0,
+      mostSold: equipmentList.find(e => e.id === maxSalesId),
+      mostSoldVal: maxSales > 0 ? maxSales : 0,
+    };
+  }, [eqStats, equipmentList]);
+
+  // Filter participants list
+  const filteredParticipants = useMemo(() => {
+    return participantsList.filter(p => {
+      const q = participantSearch.toLowerCase().trim();
+      if (!q) return true;
+      return (
+        p.attendeeName.toLowerCase().includes(q) ||
+        p.companyName.toLowerCase().includes(q) ||
+        p.courseTitle.toLowerCase().includes(q) ||
+        p.email.toLowerCase().includes(q) ||
+        p.phone.toLowerCase().includes(q)
+      );
+    });
+  }, [participantsList, participantSearch]);
 
   // New Equipment Form State
   const [showAddEqModal, setShowAddEqModal] = useState(false);
@@ -289,17 +355,45 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
               <button
                 onClick={() => setShowAddEqModal(true)}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#00873D] hover:bg-[#007032] text-white font-bold text-xs shadow-md transition-all"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#00873D] hover:bg-[#007032] text-white font-bold text-xs shadow-md transition-all cursor-pointer"
               >
                 <Plus className="w-4 h-4 text-white" />
                 <span>Agregar Nuevo Equipo</span>
               </button>
             </div>
 
+            {/* Metrics Dashboard Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-5 rounded-2xl bg-slate-950 border border-slate-800 shadow-xl">
+              <div className="space-y-1.5">
+                <div className="flex items-center gap-2 text-slate-400 text-xs font-mono-tech uppercase font-bold">
+                  <Eye className="w-4 h-4 text-slate-400" />
+                  <span>Equipo Más Consultado</span>
+                </div>
+                <h4 className="text-lg font-black text-white">{metrics.mostInquired?.model || 'Ninguno'}</h4>
+                <p className="text-[11px] text-slate-400 font-mono-tech">{metrics.mostInquiredVal} visitas a especificaciones</p>
+              </div>
+              <div className="space-y-1.5 border-t md:border-t-0 md:border-l border-slate-800 pt-3 md:pt-0 md:pl-4">
+                <div className="flex items-center gap-2 text-emerald-400 text-xs font-mono-tech uppercase font-bold">
+                  <FileText className="w-4 h-4 text-emerald-400" />
+                  <span>Equipo Más Cotizado</span>
+                </div>
+                <h4 className="text-lg font-black text-emerald-400">{metrics.mostQuoted?.model || 'Ninguno'}</h4>
+                <p className="text-[11px] text-slate-400 font-mono-tech">{metrics.mostQuotedVal} solicitudes de cotización</p>
+              </div>
+              <div className="space-y-1.5 border-t md:border-t-0 md:border-l border-slate-800 pt-3 md:pt-0 md:pl-4">
+                <div className="flex items-center gap-2 text-cyan-400 text-xs font-mono-tech uppercase font-bold">
+                  <TrendingUp className="w-4 h-4 text-cyan-400" />
+                  <span>Mayor Conversión Venta</span>
+                </div>
+                <h4 className="text-lg font-black text-cyan-400">{metrics.mostSold?.model || 'Ninguno'}</h4>
+                <p className="text-[11px] text-slate-400 font-mono-tech">{metrics.mostSoldVal} cierres comerciales</p>
+              </div>
+            </div>
+
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {equipmentList.map((eq) => (
-                <div key={eq.id} className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4 relative flex flex-col justify-between">
-                  <div className="space-y-2">
+                <div key={eq.id} className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4 relative flex flex-col justify-between hover:border-slate-700 transition-all">
+                  <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-mono-tech font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">
                         {eq.brand}
@@ -309,8 +403,26 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </span>
                     </div>
 
-                    <h4 className="text-lg font-bold text-white">{eq.model}</h4>
-                    <p className="text-xs text-slate-400 line-clamp-2">{eq.name}</p>
+                    <div>
+                      <h4 className="text-lg font-bold text-white leading-tight">{eq.model}</h4>
+                      <p className="text-xs text-slate-400 line-clamp-1 mt-0.5">{eq.name}</p>
+                    </div>
+
+                    {/* Stats Breakdown inside Card */}
+                    <div className="grid grid-cols-3 gap-1.5 pt-2 text-[9px] font-mono-tech text-slate-400 border-t border-slate-900">
+                      <div className="p-1 rounded-lg bg-slate-900 border border-slate-800/80 text-center">
+                        <p className="text-slate-500 font-bold">Consultas</p>
+                        <p className="text-xs font-extrabold text-slate-200 mt-0.5">{eqStats[eq.id]?.consultas || 0}</p>
+                      </div>
+                      <div className="p-1 rounded-lg bg-slate-900 border border-slate-800/80 text-center">
+                        <p className="text-slate-500 font-bold">Cotizaciones</p>
+                        <p className="text-xs font-extrabold text-emerald-400 mt-0.5">{eqStats[eq.id]?.cotizaciones || 0}</p>
+                      </div>
+                      <div className="p-1 rounded-lg bg-slate-900 border border-slate-800/80 text-center">
+                        <p className="text-slate-500 font-bold">Ventas</p>
+                        <p className="text-xs font-extrabold text-cyan-400 mt-0.5">{eqStats[eq.id]?.ventas || 0}</p>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="pt-3 border-t border-slate-900 flex items-center justify-between">
@@ -321,7 +433,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
                     <button
                       onClick={() => onDeleteEquipment(eq.id)}
-                      className="p-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-400 border border-rose-800 text-xs"
+                      className="p-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-400 border border-rose-800 text-xs cursor-pointer"
                       title="Eliminar equipo"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -335,7 +447,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
         {/* TAB 2: GESTIÓN DE CAPACITACIONES */}
         {activeTab === 'cursos' && (
-          <div className="space-y-6">
+          <div className="space-y-8">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="text-xl font-black text-white">Fechas de Próximas Capacitaciones</h3>
@@ -343,7 +455,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
               <button
                 onClick={() => setShowAddCourseModal(true)}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#00873D] hover:bg-[#007032] text-white font-bold text-xs shadow-md transition-all"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#00873D] hover:bg-[#007032] text-white font-bold text-xs shadow-md transition-all cursor-pointer"
               >
                 <Plus className="w-4 h-4 text-white" />
                 <span>Publicar Nueva Fecha</span>
@@ -352,8 +464,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
 
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
               {coursesList.map((course) => (
-                <div key={course.id} className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4 flex flex-col justify-between">
-                  <div className="space-y-2">
+                <div key={course.id} className="p-5 rounded-2xl bg-slate-950 border border-slate-800 space-y-4 flex flex-col justify-between hover:border-slate-700 transition-all">
+                  <div className="space-y-3">
                     <div className="flex items-center justify-between">
                       <span className="text-[10px] font-mono-tech font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">
                         {course.brandFocus} Focus
@@ -363,21 +475,101 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </span>
                     </div>
 
-                    <h4 className="text-base font-bold text-white leading-snug">{course.title}</h4>
-                    <p className="text-xs text-slate-400 font-mono-tech">📅 {course.date}</p>
+                    <div>
+                      <h4 className="text-base font-bold text-white leading-snug">{course.title}</h4>
+                      <p className="text-xs text-slate-400 font-mono-tech mt-1">📅 {course.date}</p>
+                    </div>
+
+                    {/* Course Stats Breakdown */}
+                    <div className="grid grid-cols-2 gap-2 pt-2 text-[9px] font-mono-tech text-slate-400 border-t border-slate-900">
+                      <div className="p-1.5 rounded-lg bg-slate-900 border border-slate-800/80 text-center">
+                        <p className="text-slate-500 font-bold">Consultas</p>
+                        <p className="text-xs font-extrabold text-slate-200 mt-0.5">{cStats[course.id]?.consultas || 0}</p>
+                      </div>
+                      <div className="p-1.5 rounded-lg bg-slate-900 border border-slate-800/80 text-center">
+                        <p className="text-slate-500 font-bold">Inscriptos</p>
+                        <p className="text-xs font-extrabold text-emerald-400 mt-0.5">
+                          {cStats[course.id]?.inscriptos || 0} / {course.totalSeats}
+                        </p>
+                      </div>
+                    </div>
                   </div>
 
                   <div className="pt-3 border-t border-slate-900 flex items-center justify-between">
                     <span className="text-xs font-mono-tech text-emerald-400">{course.availableSeats} Cupos Libres</span>
                     <button
                       onClick={() => onDeleteCourse(course.id)}
-                      className="p-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-400 border border-rose-800 text-xs"
+                      className="p-1.5 rounded-lg bg-rose-950/60 hover:bg-rose-900 text-rose-400 border border-rose-800 text-xs cursor-pointer"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
                 </div>
               ))}
+            </div>
+
+            {/* Registered Participants Section */}
+            <div className="pt-6 border-t border-slate-800 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="text-lg font-black text-white">Listado de Participantes Inscriptos</h3>
+                  <p className="text-xs text-slate-400">Consulte y administre la nómina de estudiantes registrados a las capacitaciones.</p>
+                </div>
+                
+                {/* Search box */}
+                <div className="relative w-full sm:w-72">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    placeholder="Buscar participante, empresa, curso..."
+                    value={participantSearch}
+                    onChange={(e) => setParticipantSearch(e.target.value)}
+                    className="w-full pl-9 pr-4 py-2 rounded-xl bg-slate-950 border border-slate-800 text-slate-100 placeholder-slate-500 text-xs focus:outline-none focus:border-[#00873D] transition-colors font-semibold"
+                  />
+                </div>
+              </div>
+
+              {filteredParticipants.length > 0 ? (
+                <div className="rounded-2xl bg-slate-950 border border-slate-800 overflow-hidden shadow-xl">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs font-sans">
+                      <thead className="bg-slate-900 text-slate-400 uppercase font-mono-tech border-b border-slate-800 text-[10px] tracking-wider">
+                        <tr>
+                          <th className="p-3.5">Fecha</th>
+                          <th className="p-3.5">Participante</th>
+                          <th className="p-3.5">Empresa</th>
+                          <th className="p-3.5">Contacto</th>
+                          <th className="p-3.5">Capacitación</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800/80 text-slate-200 font-medium">
+                        {filteredParticipants.map((p) => (
+                          <tr key={p.id} className="hover:bg-slate-900/40 transition-colors">
+                            <td className="p-3.5 font-mono-tech text-slate-400 text-[11px] whitespace-nowrap">{p.date}</td>
+                            <td className="p-3.5 font-bold text-white">{p.attendeeName}</td>
+                            <td className="p-3.5 text-slate-300 font-bold">{p.companyName}</td>
+                            <td className="p-3.5 space-y-1">
+                              <div className="flex items-center gap-1.5 text-slate-400">
+                                <Mail className="w-3.5 h-3.5 text-[#00873D]" />
+                                <span>{p.email}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5 text-slate-400">
+                                <Phone className="w-3.5 h-3.5 text-[#00873D]" />
+                                <span>{p.phone}</span>
+                              </div>
+                            </td>
+                            <td className="p-3.5 max-w-xs text-slate-300 leading-relaxed font-semibold">{p.courseTitle}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : (
+                <div className="p-8 text-center bg-slate-950 rounded-2xl border border-slate-800 text-slate-500 font-medium text-xs">
+                  No se encontraron participantes registrados que coincidan con la búsqueda.
+                </div>
+              )}
             </div>
           </div>
         )}

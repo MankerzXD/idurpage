@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import type { Equipment, ApplicationCategory } from '../types';
 import { MOCK_EQUIPMENT } from '../data/mockData';
+import { incrementEquipmentStat } from '../lib/statsService';
 
 interface CatalogProps {
   onAddToCart: (equipment: Equipment, type: 'rental' | 'purchase') => void;
@@ -212,7 +213,10 @@ export const Catalog: React.FC<CatalogProps> = ({ onAddToCart }) => {
                   </div>
 
                   <button
-                    onClick={() => setActiveModalEquipment(eq)}
+                    onClick={() => {
+                      setActiveModalEquipment(eq);
+                      incrementEquipmentStat(eq.id, 'consultas');
+                    }}
                     className="w-full flex items-center justify-center gap-1 py-1.5 text-slate-500 hover:text-[#00873D] text-[11px] font-semibold transition-colors"
                   >
                     <Info className="w-3.5 h-3.5" />

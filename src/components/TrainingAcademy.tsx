@@ -17,6 +17,7 @@ import confetti from 'canvas-confetti';
 import type { Course } from '../types';
 import { MOCK_COURSES } from '../data/mockData';
 import { sendRegistrationEmail } from '../lib/emailService';
+import { addParticipant, incrementCourseStat } from '../lib/statsService';
 
 export const TrainingAcademy: React.FC = () => {
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
@@ -50,6 +51,16 @@ export const TrainingAcademy: React.FC = () => {
 
     // Dispatch email trigger
     await sendRegistrationEmail(payload);
+
+    // Save registration and update stats in local storage
+    addParticipant(
+      selectedCourse.id,
+      selectedCourse.title,
+      payload.attendeeName,
+      payload.companyName,
+      payload.toEmail,
+      payload.phone
+    );
 
     setSubmittedRegistration({
       course: selectedCourse,
@@ -161,7 +172,10 @@ export const TrainingAcademy: React.FC = () => {
                 </div>
 
                 <button
-                  onClick={() => setSelectedCourse(course)}
+                  onClick={() => {
+                    setSelectedCourse(course);
+                    incrementCourseStat(course.id, 'consultas');
+                  }}
                   className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#00873D] hover:bg-[#007032] text-white font-bold text-xs shadow-md transition-all"
                 >
                   <Mail className="w-4 h-4" />
