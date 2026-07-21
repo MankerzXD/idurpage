@@ -57,6 +57,12 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
   const [cStats, setCStats] = useState(() => loadCourseStats());
   const [participantsList, setParticipantsList] = useState(() => loadParticipants());
   const [participantSearch, setParticipantSearch] = useState('');
+  const [adminWspNumber, setAdminWspNumber] = useState(() => localStorage.getItem('idur_whatsapp_number') || '5491148004387');
+
+  const handleSaveWspNumber = () => {
+    localStorage.setItem('idur_whatsapp_number', adminWspNumber.trim());
+    triggerToast('Número de WhatsApp de la empresa actualizado con éxito.');
+  };
 
   // Re-load stats when tab changes to keep dashboard updated
   React.useEffect(() => {
@@ -627,6 +633,38 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                   ))}
                 </tbody>
               </table>
+            </div>
+
+            {/* WhatsApp configuration settings card */}
+            <div className="p-6 rounded-2xl bg-slate-950 border border-slate-800 space-y-4 shadow-xl">
+              <div className="space-y-1">
+                <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                  <Phone className="w-4 h-4 text-emerald-400" />
+                  Configuración de WhatsApp de la Empresa
+                </h4>
+                <p className="text-xs text-slate-400">
+                  Establezca el número telefónico para la redirección de consultas y el botón flotante de la web.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-end gap-4 text-xs">
+                <div className="flex-1 space-y-1">
+                  <label className="block text-slate-400 font-semibold mb-1">Número de WhatsApp (con código de país, sin espacios ni símbolos)</label>
+                  <input
+                    type="text"
+                    value={adminWspNumber}
+                    onChange={(e) => setAdminWspNumber(e.target.value.replace(/\D/g, ''))}
+                    placeholder="Ej: 5491148004387"
+                    className="w-full px-3 py-2.5 rounded-xl bg-slate-900 border border-slate-800 text-slate-100 placeholder-slate-600 focus:outline-none focus:border-[#00873D] font-mono-tech"
+                  />
+                </div>
+                <button
+                  onClick={handleSaveWspNumber}
+                  className="px-6 py-3 rounded-xl bg-[#00873D] hover:bg-[#007032] text-white font-bold transition-all shadow-md cursor-pointer whitespace-nowrap"
+                >
+                  Guardar Número
+                </button>
+              </div>
             </div>
           </div>
         )}

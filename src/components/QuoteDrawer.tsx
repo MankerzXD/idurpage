@@ -74,7 +74,8 @@ export const QuoteDrawer: React.FC<QuoteDrawerProps> = ({
     text += `\n\n*Estimado Aproximado:* USD $${estimatedTotal}`;
 
     const encodedText = encodeURIComponent(text);
-    window.open(`https://wa.me/5491140000000?text=${encodedText}`, '_blank');
+    const whatsappNumber = localStorage.getItem('idur_whatsapp_number') || '5491148004387';
+    window.open(`https://wa.me/${whatsappNumber}?text=${encodedText}`, '_blank');
     setIsSubmitted(true);
   };
 
