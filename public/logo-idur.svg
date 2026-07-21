@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 80" width="240" height="80">
+  <style>
+    .brand-text-outer {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-weight: 700;
+      font-size: 68px;
+      fill: #00873D;
+      letter-spacing: -1px;
+    }
+    .brand-text-inner {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-weight: 700;
+      font-size: 62px;
+      fill: #00873D;
+      letter-spacing: -1px;
+    }
+  </style>
+  <text x="5" y="60">
+    <tspan class="brand-text-outer">I</tspan>
+    <tspan class="brand-text-inner">DU</tspan>
+    <tspan class="brand-text-outer">R</tspan>
+  </text>
+</svg>

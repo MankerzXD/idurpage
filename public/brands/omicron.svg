@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 80" width="320" height="80">
+  <text x="10" y="55" font-family="'Arial Black', 'Trebuchet MS', sans-serif" font-weight="900" font-size="34" fill="#000000" letter-spacing="1">OMICRON</text>
+  <line x1="205" y1="15" x2="205" y2="65" stroke="#94A3B8" stroke-width="1.5"/>
+  <polygon points="218,15 250,15 250,47 234,62 234,47 218,47" fill="#CE1126"/>
+  <polygon points="218,15 250,15 218,47" fill="#003865"/>
+  <line x1="218" y1="47" x2="250" y2="15" stroke="#FCD116" stroke-width="2.5"/>
+  <polygon points="258,15 290,15 290,47 274,62 274,47 258,47" fill="#CE1126"/>
+  <polygon points="258,15 290,15 258,47" fill="#003865"/>
+  <line x1="258" y1="47" x2="290" y2="15" stroke="#FCD116" stroke-width="2.5"/>
+</svg>
