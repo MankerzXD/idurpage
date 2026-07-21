@@ -64,6 +64,11 @@ export default async function handler(req, res) {
 
     const result = await response.json();
     console.log('[Resend Email Response]:', result);
+    
+    if (!response.ok) {
+      return res.status(response.status).json({ error: result.message || 'Error al enviar correo vía Resend' });
+    }
+
     return res.status(200).json({ status: 'success', result });
   } catch (error) {
     console.error('[Resend Email Error]:', error);

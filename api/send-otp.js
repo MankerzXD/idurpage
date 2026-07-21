@@ -103,7 +103,12 @@ export default async function handler(req, res) {
     });
 
     const result = await response.json();
-    console.log('[OTP Email Sent Success]:', result);
+    console.log('[OTP Email Response]:', result);
+
+    if (!response.ok) {
+      return res.status(response.status).json({ error: result.message || 'Error al enviar OTP vía Resend' });
+    }
+
     return res.status(200).json({ status: 'success', token, expiry });
   } catch (error) {
     console.error('[OTP Email Send Error]:', error);
