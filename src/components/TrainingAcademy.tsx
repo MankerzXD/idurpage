@@ -293,20 +293,14 @@ export const TrainingAcademy: React.FC = () => {
               </div>
 
               {/* Confirmation Notice Body */}
-              <div className="p-5 rounded-2xl bg-emerald-50/60 border border-emerald-200 space-y-4 text-xs text-slate-800">
+              <div className="p-5 rounded-2xl bg-emerald-50/60 border border-emerald-200 text-xs text-slate-800">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-[#00873D] text-white flex items-center justify-center font-bold shrink-0">
                     ✓
                   </div>
                   <div>
                     <h4 className="font-extrabold text-sm text-slate-900">¡Email Enviado con Éxito!</h4>
-                    <p className="text-slate-600 text-[11px]">Se notificarán las casillas de prueba registradas.</p>
                   </div>
-                </div>
-
-                <div className="space-y-2 p-3 rounded-xl bg-white border border-emerald-100 text-[11px] font-mono-tech">
-                  <p>📩 <strong className="text-slate-900">Administrador de Prueba (`sanchezmanuel397@gmail.com`)</strong> recibió la copia de la solicitud para el asistente <strong className="text-[#00873D]">{submittedRegistration.attendeeName}</strong> ({submittedRegistration.companyName}).</p>
-                  <p>📩 <strong className="text-slate-900">Participante (`{submittedRegistration.email}`)</strong> recibió el email de confirmación formal para <em>"{submittedRegistration.course.title}"</em>.</p>
                 </div>
               </div>
 
