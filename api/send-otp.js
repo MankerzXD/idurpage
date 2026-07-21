@@ -5,6 +5,11 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const RESEND_API_KEY = process.env.RESEND_API_KEY;
+  if (!RESEND_API_KEY) {
+    return res.status(500).json({ error: 'Falta configurar la variable de entorno RESEND_API_KEY.' });
+  }
+
   const { email } = req.body;
   if (!email || typeof email !== 'string') {
     return res.status(400).json({ error: 'El correo electrónico es requerido.' });
@@ -49,13 +54,12 @@ export default async function handler(req, res) {
   const expiry = Date.now() + 5 * 60 * 1000;
 
   // Generate HMAC verification token
-  const secret = process.env.RESEND_API_KEY || 'idur-otp-secret-key';
+  const secret = RESEND_API_KEY;
   const hmac = crypto.createHmac('sha256', secret);
   hmac.update(`${targetEmail}:${otp}:${expiry}`);
   const token = hmac.digest('hex');
 
   // Resend API variables
-  const RESEND_API_KEY = process.env.RESEND_API_KEY || 're_cf7VxpQB_EaUEc76JmXzMMvj4zhhq2UPM';
   const FROM_EMAIL = 'IDUR Seguridad <notificaciones@mankerz.net>';
 
   try {

@@ -16,11 +16,16 @@ export default async function handler(req, res) {
     return res.status(400).json({ error: 'El código OTP ha expirado. Por favor, solicita uno nuevo.' });
   }
 
+  const RESEND_API_KEY = process.env.RESEND_API_KEY;
+  if (!RESEND_API_KEY) {
+    return res.status(500).json({ error: 'Falta configurar la variable de entorno RESEND_API_KEY.' });
+  }
+
   const targetEmail = email.trim().toLowerCase();
   const targetOtp = otp.trim();
 
   // Recompute verification token
-  const secret = process.env.RESEND_API_KEY || 'idur-otp-secret-key';
+  const secret = RESEND_API_KEY;
   const hmac = crypto.createHmac('sha256', secret);
   hmac.update(`${targetEmail}:${targetOtp}:${expiry}`);
   const expectedToken = hmac.digest('hex');

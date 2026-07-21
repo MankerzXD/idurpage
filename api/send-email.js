@@ -6,7 +6,10 @@ export default async function handler(req, res) {
 
   const { toEmail, attendeeName, companyName, phone, courseTitle } = req.body;
 
-  const RESEND_API_KEY = process.env.RESEND_API_KEY || 're_cf7VxpQB_EaUEc76JmXzMMvj4zhhq2UPM';
+  const RESEND_API_KEY = process.env.RESEND_API_KEY;
+  if (!RESEND_API_KEY) {
+    return res.status(500).json({ error: 'Falta configurar la variable de entorno RESEND_API_KEY.' });
+  }
   const ADMIN_TEST_EMAIL = 'sanchezmanuel397@gmail.com'; // Notificación para IDUR S.A. en etapa de prueba
   const FROM_EMAIL = 'IDUR Capacitaciones <notificaciones@mankerz.net>'; // Remitente oficial desde el dominio mankerz.net
 
